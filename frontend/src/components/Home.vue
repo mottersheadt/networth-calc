@@ -9,9 +9,11 @@
     </div> -->    
     <div class="row">
       <div class="col">
+        <label>Start Date</label>
         <input v-model="startDate" type="date" class="form-control" placeholder="Start Date" aria-label="Start Date">
       </div>
       <div class="col">
+        <label>End Date</label>
         <input v-model="endDate" type="date" class="form-control" placeholder="End Date" aria-label="End Date">
       </div>
     </div>
