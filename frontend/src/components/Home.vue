@@ -2,11 +2,12 @@
   <div class="mt-5">
     <h1>Networth</h1>
     
-    <!-- <div class="mt-3">
+    <div class="mt-3">
       <div class="bg-light p-3">
-        {{netWorth}}
+        The chart below shows how the networth changed over time. Hover your mouse over the chart to see details on each change. Use the Start Date and End Date to limit the results in the chart.
       </div>
-    </div> -->    
+    </div>    
+    
     <div class="row">
       <div class="col">
         <label>Start Date</label>
@@ -197,16 +198,24 @@
 }
 
 .history-bar{
-  
   background: rgb(85, 85, 204);
 }
 
 .history-item:hover {
-  background: rgb(49, 49, 158);
+  z-index: 99;
 }
 
 .history-item .history-hover {
   display: none;
+}
+
+.history-bar{
+  background: rgb(85, 85, 204);
+}
+
+.history-item:hover .history-bar
+{
+  background: black
 }
 
 .history-item:hover .history-hover {
