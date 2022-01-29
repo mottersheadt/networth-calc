@@ -1,7 +1,12 @@
 <template>
   <div class="mt-5">
-    <h1>Home</h1>
+    <h1>Networth</h1>
     
+    <!-- <div class="mt-3">
+      <div class="bg-light p-3">
+        {{netWorth}}
+      </div>
+    </div> -->    
     <div class="row">
       <div class="col">
         <input v-model="startDate" type="date" class="form-control" placeholder="Start Date" aria-label="Start Date">
@@ -12,21 +17,37 @@
     </div>
     <div class="row mt-3">
       <div class="col">
-        <button class="btn btn-primary" @click="submit">load data</button>
-        <button class="btn btn-warning ml-2" @click="reset">reset data</button>
+        <button class="btn btn-primary" @click="update">Update</button>
       </div>
     </div>
-    <div class="mt-3">
-      <div class="bg-light p-3">
-        {{response}}
+    <div class="row mt-3">
+      <div class="col">
+        Max Amount: {{netWorth.max}}
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col">
+        End Amount: {{netWorth.total}}
       </div>
     </div>
 
-    <ul class="mt-5">
-      <li v-for="company in companies" :key="company.id">
-        {{ company.name }}
-      </li>
-    </ul>
+    <div class="row mt-3">
+      <div class="history">
+        <div v-for="(item) in netWorth.history" :key="item.id" class="history-item"
+            v-bind:style="{
+              width: 99.5 /  transactionCount + '%'}">
+          <div class="history-bar"
+            v-bind:style="{
+              height:  item.amount / netWorth.max * 100 + '%'}">
+          </div>
+            <div class="history-hover">
+              Date: {{item.date}}
+              <br>
+              Amount: {{item.amount}}
+            </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -34,106 +55,167 @@
   import axios from 'axios';
 
   export default {
-    props: ['category'],
     async created() {
-      const transactions = await this.methods.loadRates();
-      const transactions = await this.methods.loadTransactions();
-      this.netWorth = this.methods.calculate(transactions);
+      this.update();
     },
     
     data() {  
       return {
+        chartdata: {
+          labels: ['January', 'February'],
+          datasets: [
+            {
+              label: 'Data One',
+              backgroundColor: '#f87979',
+              data: [40, 20]
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        },
         startDate: null,
-        endDate: null
+        endDate: null,
+        netWorth: {
+          "BTC": {
+            amount: 0,
+          },
+          "ETH": {
+            amount: 0,
+          },
+          "CAD": {
+            amount: 0,
+          },
+          "total": 0,
+          "max": 0,
+          history: [
+          ]
+        }
       }
     },
 
     methods: {
-      async loadRates()
+      async update()
       {
-        this.rates = await this.$config.ratesEP
-      },
-      async loadTransactions()
-      {
-        var data = [{
-            "createdAt": "2020-04-20T15:49:57.741Z",
-            "amount": 100,
-            "currency": "CAD",
-            "type": "external account",
-            "direction": "credit",
-            "from": {
-            }
-        },
-        {
-            "createdAt": "2020-04-09T18:31:25.776Z",
-            "amount": 495,
-            "currency": "CAD",
-            "type": "external account",
-            "direction": "credit",
-            "from": {
-            }
-        },
-        {
-            "createdAt": "2020-04-06T20:34:32.796Z",
-            "amount": 0.002,
-            "currency": "BTC",
-            "type": "external account",
-            "direction": "debit",
-            "to": {
-                "toAddress": "btc:2N2DZtj1SfcGkaeHA72eZAYBrFbyMZoHVmE"
-            }
-        },
-        {
-            "createdAt": "2020-03-16T18:30:59.575Z",
-            "amount": 0.01,
-            "currency": "BTC",
-            "type": "peer",
-            "direction": "credit",
-            "from": {
-            }
-        },]
-        return data;
+        this.netWorth =  {
+          "BTC": {
+            amount: 0,
+          },
+          "ETH": {
+            amount: 0,
+          },
+          "CAD": {
+            amount: 0,
+          },
+          "total": 0,
+          "max": 0,
+          history: [
+          ]
+        }
+        const transactions = await this.loadTransactions();
+        this.calculate(transactions, this.$config.rates);
+        console.log("Networth", this.netWorth);
       },
 
-      calculate(transactions)
+      async loadTransactions()
       {
-        let networth = {
-          "BTC": 0,
-          "ETH": 0,
-          "CAD": 0,
-          "total": 0
-        };
-        
+        var response = await axios.get(this.$config.transactionHistoryEP);
+        console.log("Transactions", response.data, response);
+        return response.data.reverse();
+      },
+      calculate(transactions, rates)
+      {
+        console.log("start date", this.startDate);
+        console.log("end date", this.endDate);
+        let netWorth = this.netWorth;
+        console.log("Start NetWorth", netWorth)
+
         for(let i = 0; i < transactions.length; i++)
         {
           var transaction =  transactions[i];
-          networth[transaction.currency] = transaction.direction == "debit"
-            ? networth[transaction.currency] + (transaction.amount * )
+          if(!!this.startDate && new Date(this.startDate) > Date.parse(transaction.createdAt))
+            continue;
+          if(!!this.endDate && new Date(this.endDate) < Date.parse(transaction.createdAt))
+            break;
+
+          this.calculateTranasction(transaction,  netWorth);
+
+          netWorth.total = netWorth.BTC.amount * rates[`BTC_CAD`] + netWorth.ETH.amount * rates[`ETH_CAD`] + netWorth.CAD.amount;
+
+          if(netWorth.total > netWorth.max)
+            netWorth.max = netWorth.total;
+
+          netWorth.history.push({
+            id: i,
+            amount: netWorth.total,
+            date: transaction.createdAt
+          })
         }
+        this.transactionCount = netWorth.history.length
       },
 
-      async submit(event) {
-        console.log(event);
-        let resp = await axios.post(`${this.$config.apiUrl}/submit?name=tester`, {
-          card_cvc: "123",
-          account_number: "234522134",
-          ssn: "1234",
-          card_number: "16661",
-          startDate: this.startDate,
-          endDate: this.endDate,
-        });
-        console.log(resp)
-        this.response = resp.data
+      calculateTranasction(transaction, netWorth)
+      {
+          // console.log("Calculating", transaction.createdAt, transaction.amount)
+          if(transaction.direction == "debit")
+          {
+            netWorth[transaction.currency].amount = netWorth[transaction.currency].amount - transaction.amount;
+          }
+          else if(transaction.direction == "credit")
+          {
+            netWorth[transaction.currency].amount = netWorth[transaction.currency].amount + transaction.amount;
+          }
+          else if(transaction.type == "conversion")
+          {
+            netWorth[transaction.from.currency].amount -= transaction.from.amount;
+            netWorth[transaction.to.currency].amount += transaction.to.amount;
+          }
+          else {
+            console.error("Unhandled transaction type for transaction", transaction)
+          }
       },
 
       reset() {
         this.response = null
-      }
-
+      },
     }
   }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.history {
+  height: 500px;
+}
+.history-item {
+  display: inline-block;
+  height: 100%;
+  position: relative;
+}
+
+.history-bar{
+  
+  background: rgb(85, 85, 204);
+}
+
+.history-item:hover {
+  background: rgb(49, 49, 158);
+}
+
+.history-item .history-hover {
+  display: none;
+}
+
+.history-item:hover .history-hover {
+  display: inline-block;
+  position: absolute;
+  top: 30px;
+  left: 0;
+  width: 300px;
+  height: 60px;
+  background: black;
+  color: white;
+  z-index: 100;
+}
 </style>

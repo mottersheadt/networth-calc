@@ -1,5 +1,18 @@
 {
     "apiUrl": "http://127.0.0.1:5000",
-    "transactionHistoryUrl": "https://shakepay.github.io/programming-exercise/web/transaction_history.json",
-    "rates": "https://api.shakepay.co/rates"
+    "transactionHistoryEP": "https://shakepay.github.io/programming-exercise/web/transaction_history.json",
+    "rates": {
+        "CAD_BTC": 0.00002078,
+        "BTC_CAD": 48109.6,
+        "CAD_ETH": 0.000304729501222115,
+        "ETH_CAD": 3281.59,
+        "USD_BTC": 0.00002654,
+        "BTC_USD": 37668.91,
+        "USD_ETH": 0.000389191377075849,
+        "ETH_USD": 2569.43,
+        "BTC_ETH": 14.660606949127693,
+        "ETH_BTC": 0.06821,
+        "CAD_USD": 0.78,
+        "USD_CAD": 1.27
+    }
 }
