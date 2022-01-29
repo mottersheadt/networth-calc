@@ -1,0 +1,5 @@
+{
+    "apiUrl": "http://127.0.0.1:5000",
+    "transactionHistoryUrl": "https://shakepay.github.io/programming-exercise/web/transaction_history.json",
+    "rates": "https://api.shakepay.co/rates"
+}
